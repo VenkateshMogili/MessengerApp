@@ -26,7 +26,9 @@ Messenger Application using React Native and Gifted Chat and Socket.IO
 
 #### Database setup.
 1.Create a database with name messenger.
+
 2.Import messenger.sql dump file (located in backend/db/messenger.sql) in messenger db.
+
 3.Provide your mysql credentials in backend/db/index.js
 
 #### Change to backend directory.
