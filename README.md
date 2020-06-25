@@ -30,11 +30,11 @@ Messenger Application using React Native and Gifted Chat.
 
 
 # Demo Screenshots
-![Chat List Screen](../master/outputs/chats.png)
-![Chat Screen](../master/outputs/image.png)
-![Chat while typing](../master/outputs/typing.png)
-![Chat online](../master/outputs/online.png)
-![Chat with images](../master/outputs/images.png)
-![Chat with View Image](../master/outputs/viewimage.png)
-![Contacts Screen](../master/outputs/contacts.png)
-![Profile Screen](../master/outputs/profile.png)
+![Chat List Screen](../master/outputs/chats.png =250x250)
+![Chat Screen](../master/outputs/image.png =250x250)
+![Chat while typing](../master/outputs/typing.png =250x250)
+![Chat online](../master/outputs/online.png =250x250)
+![Chat with images](../master/outputs/images.png =250x250)
+![Chat with View Image](../master/outputs/viewimage.png =250x250)
+![Contacts Screen](../master/outputs/contacts.png =250x250)
+![Profile Screen](../master/outputs/profile.png =250x250)
