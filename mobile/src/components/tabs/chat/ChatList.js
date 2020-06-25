@@ -7,7 +7,6 @@ import {environment} from '../../../constants/environment';
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
 import io from 'socket.io-client';
-import IconBadge from 'react-native-icon-badge';
 import { Badge } from 'react-native-elements'
 
 export class ChatList extends React.Component{

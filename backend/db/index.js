@@ -1,10 +1,10 @@
 const db = require('mysql');
 const connection = db.createConnection({
   host:'localhost',
-  user:'root',
-  password:'root',
-  database:'messenger',
-  charset : 'utf8mb4'
+  user:'root',//username
+  password:'root',//password
+  database:'messenger',//db name
+  charset : 'utf8mb4'//to allow emojis
 });
 
 connection.connect((err)=>{

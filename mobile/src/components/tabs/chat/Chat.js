@@ -1,5 +1,4 @@
 import React, { Component,useRef } from 'react';
-// import {View,StyleSheet,Text, TouchableOpacity, ScrollView,ImageBackground} from 'react-native';
 import {CustomHeader} from '../../CustomHeader';
 import {
   SafeAreaView,
@@ -28,7 +27,6 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import {Icon} from 'native-base';
-// import { GiftedChat,Bubble } from 'react-native-gifted-chat'
 import ImagePicker from "react-native-image-picker";
 import {GiftedChat, Bubble} from "react-native-gifted-chat-video-support";
 import io from 'socket.io-client';
@@ -155,9 +153,6 @@ export class Chat extends Component{
     this.socket.on("receive message",msg=>{
       // console.log("received",msg);
       if((msg.userFrom==userFrom && msg.userTo==userTo) || (msg.userFrom==userTo && msg.userTo==userFrom)){
-      // this.setState(prevState => ({
-      //   messages: [...prevState.messages, msg]
-      // }))
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, msg),
       customMessage: ''
@@ -216,9 +211,6 @@ export class Chat extends Component{
   // }
 
   onSend(messages = []) {
-    // this.setState(previousState => ({
-    //   messages: GiftedChat.append(previousState.messages, messages),
-    // }))
     // console.log("sending message",messages);
     let userTo = this.props.navigation.getParam('id');
     let userFrom = this.props.navigation.getParam('fromId');
@@ -234,18 +226,6 @@ export class Chat extends Component{
       this.socket.emit("chat message",messages[0]);
     }
   }
-  // renderBubble = props => {
-  //   return (
-  //     <Bubble
-  //       {...props}
-  //       wrapperStyle={{
-  //         left: {
-  //           backgroundColor: 'white',
-  //         },
-  //       }}
-  //     />
-  //   )
-  // }
 
   // renderMessageVideo = (props: any) => {
   //   const { currentMessage } = props;
@@ -257,7 +237,8 @@ export class Chat extends Component{
   //   );
   // };
 
-  sendMessage = (text)=>{
+  //custom message handler
+  /*sendMessage = (text)=>{
     // console.log(text);
     let messages = [{message:{text:'',_id:'',createdAt:new Date(),userTo:'',userFrom:'',user:{}}}];
     let userTo = this.props.navigation.getParam('id');
@@ -271,7 +252,7 @@ export class Chat extends Component{
     messages[0].message.userFrom = userFrom;
     // this.socket.emit("chat message",messages[0].message);
     // this.setState({messageText:''});
-  }
+  }*/
 
   chooseImage() {
     const options = {
@@ -308,48 +289,6 @@ export class Chat extends Component{
             resourcePath: response
           });
           this.sendToBackend(response);
-          // let fromId=parseInt(this.props.navigation.getParam('fromId'));
-          // let userTo=parseInt(this.props.navigation.getParam('id'));
-          // let sender=this.props.navigation.getParam('sender');
-          // console.log("response uri",response.uri);
-          //   const source = { uri: response.uri };
-          //   const uriParts = response.uri.split('.');
-          //   const fileType = uriParts[uriParts.length - 1];
-          //   let photo = {
-          //     uri: response.uri,
-          //     type: 'image/jpeg',
-          //     name: new Date().getTime()+".jpg",
-          //   };
-
-          //   let form = new FormData();
-          //   form.append("upload", photo);
-          //   fetch(environment+'/users/imageMsg',
-          //     {
-          //       method: "POST",
-          //       headers: {
-          //         'Content-Type':'multipart/formdata'
-          //       },
-          //       body: form
-          //     }
-          //   ).then((response) => response.json())
-          //   .then((responseData) => {
-          //     console.log("Image sent",responseData);
-          //     if(responseData.success){
-          //       let img_url = environment+"/images/"+source.uri;
-          //   let msg = [{
-          //     _id: new Date().getTime(),
-          //     createdAt: new Date(),
-          //     user: {
-          //         _id: fromId,
-          //         name: sender,
-          //     },
-          //     image: img_url
-          // }]
-          // this.onSend(msg)
-            //   } else{
-            //     alert(responseData.message);
-            //   }
-            // }).done();
         }
     });
 }
@@ -372,8 +311,6 @@ sendToBackend(response){
             let form = new FormData();
             form.append("upload", photo);
             let fileOk = JSON.stringify(form);
-            // let parsed = JSON.parse(fileOk);
-            // console.log(parsed._parts[0][1]['uri']);
             fetch(environment+'/users/imageMsg',
               {
                 method: "POST",
@@ -408,7 +345,8 @@ sendToBackend(response){
             }).done();
 }
 
-chooseVideo() {
+/*not yet implemented*/
+/*chooseVideo() {
     // console.log("choose vids called ");
     const options = {
         title: null,
@@ -451,30 +389,26 @@ chooseVideo() {
             this.onSend(msg)
         }
     });
-}
+}*/
 
+/*camera icon to send images*/
 renderLeftIcon = () =>{
     return(
         <View  style={{ height:'100%',alignItems:'center'  , justifyContent:'flex-start' , flexDirection:'row' , paddingLeft:5,paddingRight: 5}}>
-
-            {/* <TouchableOpacity onPress={this.chooseVideo.bind(this)} >
-            <Icon name="camera"/>
-            </TouchableOpacity> */}
             {!this.state.imageUploading?
             <TouchableOpacity onPress={this.chooseImage.bind(this)}>
-            <Icon name="camera" style={styles.camera}/>
+              <Icon name="camera" style={styles.camera}/>
             </TouchableOpacity>:null}
-
             {this.state.imageUploading?
             <TouchableOpacity>
-            <Icon name="sync" style={styles.camera}/>
+              <Icon name="sync" style={styles.camera}/>
             </TouchableOpacity>:null}
-
         </View>
     );
 }
 
 
+/*initial load whenever chat opens*/
 renderLoading = ()=>{
   return (
     <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
@@ -483,6 +417,9 @@ renderLoading = ()=>{
   )
 }
 
+/*when we clock on load earlier messages*/
+/*10 messages only loads initially.
+If more than 10 messages,then 10 messages will be added each time when we load earlier messages*/
 loadMessages =() =>{
   this.setState({loading:true});
   if(this.timeout) clearTimeout(this.timeout);
@@ -517,6 +454,7 @@ loadMessages =() =>{
 
 }
 
+/*while typing the message*/
 onMessageTyping(message){
   this.setState({customMessage:message});
   let fromId=parseInt(this.props.navigation.getParam('fromId'));
@@ -551,7 +489,6 @@ onMessageTyping(message){
       {/* {this.renderLoading()} */}
 <View style={{flex:1,backgroundColor:'lightgray'}}>
       <GiftedChat
-      // renderUsernameOnMessage={true}
       alwaysShowSend={true}
       scrollToBottom
       showUserAvatar

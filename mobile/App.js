@@ -20,50 +20,14 @@ import { createBottomTabNavigator } from 'react-navigation-tabs';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createAppContainer,createSwitchNavigator } from 'react-navigation';
 import {IMAGE} from './src/constants/Image';
-import {ChatList, Chat, ContactList, Contact,Profile, Feed,FeedDetails,Search,SearchDetails,
-  Category,CategoryDetails,Login,Register,
+import {ChatList, Chat, ContactList, Contact,Profile,Login,Register,
   ForgotPassword,AuthLoading,Logout} from './src/components';
 console.reportErrorsAsExceptions = false;
 console.disableYellowBox = true;
 const navOptionHandler = (navigation)=>({
   headerShown: false,
-  tabBarOnPress: (scene, jumpToIndex) => {
-    console.log('onPress:', scene.route);
-    jumpToIndex(scene.index);
-  },
 })
-const FeedStack = createStackNavigator({
-  Feed: {
-    screen: Feed,
-    navigationOptions: navOptionHandler
-  },
-  FeedDetails: {
-    screen: FeedDetails,
-    navigationOptions: navOptionHandler
-  }
-});
 
-const CategoryStack = createStackNavigator({
-  Category: {
-    screen: Category,
-    navigationOptions: navOptionHandler
-  },
-  CategoryDetails: {
-    screen: CategoryDetails,
-    navigationOptions: navOptionHandler
-  }
-});
-
-const SearchStack = createStackNavigator({
-  Search: {
-    screen: Search,
-    navigationOptions: navOptionHandler
-  },
-  SearchDetails: {
-    screen: SearchDetails,
-    navigationOptions: navOptionHandler
-  }
-});
 const ChatStack = createStackNavigator({
   ChatList: {
     screen: ChatList,

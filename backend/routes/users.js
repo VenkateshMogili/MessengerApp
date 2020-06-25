@@ -1,26 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const connection = require('../db');
-const multer = require("multer");
+// const multer = require("multer");
 const fs = require("fs");
-const base64Img = require('base64-img');
 const mime = require('mime');
 const resizeOptimizeImages = require('resize-optimize-images');
-const sizeOf = require('image-size');
 
-const storage = multer.diskStorage({
-  destination: (req,file,callBack)=>{
-    callBack(null,'public/images');
-  },
-  filename: (req,file,callBack)=>{
-    callBack(null,file.originalname);
-  }
-});
-
-const upload = multer({storage: storage});
-/* User Login */
+//User Login
 router.post('/', function(req, res, next) {
-  // console.log(req.body);
   var username=req.body.email;
   var password=req.body.password;
   if(!username || !password){
@@ -37,8 +24,8 @@ router.post('/', function(req, res, next) {
 }
 });
 
+//get all the contacts
 router.post('/contacts', function(req, res, next) {
-  // console.log(req.body);
   var username=req.body.email;
   if(!username){
     res.send({'success':false,'message':'Please Login'});
@@ -63,8 +50,8 @@ router.post('/contacts', function(req, res, next) {
 }
 });
 
+//get all chats
 router.post('/chats', function(req, res, next) {
-  // console.log(req.body);
   let id=req.body.id;
   if(!id){
     res.send({'success':false,'message':'Please Login'});
@@ -80,7 +67,6 @@ router.post('/chats', function(req, res, next) {
       });
       users = users.filter(user=>user!=id);
       users = removeDuplicateUsers(users);
-      // console.log(users);
       users.map(user=>{
         connection.query("SELECT * FROM users WHERE id=?",[user],(err,rows,fields)=>{
           if(err) {throw err;}
@@ -132,6 +118,7 @@ router.post('/chats', function(req, res, next) {
 }
 });
 
+//get particular one to one chat
 router.post('/getChat',(req,res,next)=>{
   let messages = [];
   let details=req.body;
@@ -190,6 +177,7 @@ router.post('/getChat',(req,res,next)=>{
   });
 });
 
+//User registration
 router.post('/addUser', (req, res, next)=> {
   let details=req.body;
   if(!details.email || !details.password){
@@ -208,6 +196,7 @@ router.post('/addUser', (req, res, next)=> {
 }
 });
 
+//forgot password route Not yet implemented
 router.post('/forgotPassword', function(req, res, next) {
   var details=req.body;
   if(!details.email){
@@ -223,6 +212,7 @@ router.post('/forgotPassword', function(req, res, next) {
 }
 });
 
+//convert base64 to image
 function decodeBase64Image(dataString) {
   var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
     response = {};
@@ -237,11 +227,10 @@ function decodeBase64Image(dataString) {
   return response;
 }
 
+//to upload image
 router.post("/imageMsg",(req,res,next)=>{
       const newPhoto = JSON.stringify(req.body);
       let parsed = JSON.parse(newPhoto);
-      // console.log(typeof(parsed._parts[0][1]['name']));
-      // console.log(typeof(parsed._parts[0][1]['uri']));
       const image = parsed._parts[0][1]['uri'];
       const destpath = './public/images/';
       const fileNames = parsed._parts[0][1]['name'];
@@ -253,7 +242,7 @@ router.post("/imageMsg",(req,res,next)=>{
       try{
         fs.writeFileSync(fileName, imageBuffer, 'utf8');
         (async () => {
-          // Set the options.
+          // Set the optimization options
           const options = {
             images: [fileName, fileName],
             // width: 2400,
@@ -269,7 +258,22 @@ router.post("/imageMsg",(req,res,next)=>{
     }
 });
 
+//to remove duplicate elements from array
 function removeDuplicateUsers(data){
   return [...new Set(data)]
 }
+
+/* To upload multiple images works for Web*/
+/* const storage = multer.diskStorage({
+   destination: (req,file,callBack)=>{
+     callBack(null,'public/images');
+   },
+   filename: (req,file,callBack)=>{
+     callBack(null,file.originalname);
+   }
+ });
+
+ const upload = multer({storage: storage});
+*/
+
 module.exports = router;
