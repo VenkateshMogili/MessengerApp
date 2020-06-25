@@ -1,5 +1,10 @@
 # MessengerApp
-Messenger Application using React Native and Gifted Chat.
+Messenger Application using React Native and Gifted Chat and Socket.IO
+
+
+# Demo Screenshots
+<img src="./outputs/chats.png" width="200" height="400" /> <img src="./outputs/image.png" width="200" height="400" /> <img src="./outputs/typing.png" width="200" height="400" /> <img src="./outputs/online.png" width="200" height="400" /> <img src="./outputs/images.png" width="200" height="400" /> <img src="./outputs/viewimage.png" width="200" height="400" /> <img src="./outputs/contacts.png" width="200" height="400" /> <img src="./outputs/profile.png" width="200" height="400" />
+
 
 # Get Started
 
@@ -27,7 +32,3 @@ Messenger Application using React Native and Gifted Chat.
 
 #### Run Node Server
 ```npm start```
-
-
-# Demo Screenshots
-<img src="./outputs/chats.png" width="200" height="400" /> <img src="./outputs/image.png" width="200" height="400" /> <img src="./outputs/typing.png" width="200" height="400" /> <img src="./outputs/online.png" width="200" height="400" /> <img src="./outputs/images.png" width="200" height="400" /> <img src="./outputs/viewimage.png" width="200" height="400" /> <img src="./outputs/contacts.png" width="200" height="400" /> <img src="./outputs/profile.png" width="200" height="400" />
