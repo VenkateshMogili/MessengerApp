@@ -72,8 +72,8 @@ io.on("connection",socket=>{
 //when message sent
   socket.on("chat message",msg=>{
       // console.log(msg);
-      let userTo = parseInt(msg.userTo);
-      let userFrom = parseInt(msg.userFrom);
+      let userTo = msg.userTo;
+      let userFrom = msg.userFrom;
       let data = {_id:msg._id,text:msg.text,image:msg.image,video:msg.video,user_id:userFrom,userTo:userTo,sent:msg.sent,received:msg.received};
       var sql = "INSERT INTO conversation SET ?";
       let createdId;
@@ -82,13 +82,13 @@ io.on("connection",socket=>{
         else{
         console.log("Message Sent Successfully");
         createdId = result.insertId;
-        let getUser = "SELECT * FROM users WHERE id=?";
+        let getUser = "SELECT * FROM profiles WHERE userid=?";
         let username=avatar='';
         db.query(getUser,[msg.userFrom],(err,rows,fields)=>{
           if(err){throw err;}
           else{
-          username = rows[0].username;
-          avatar = rows[0].avatar;
+          username = rows[0].firstname;
+          avatar = rows[0].image;
           let output = {
             text: msg.text,
             user: {_id: msg.user._id,

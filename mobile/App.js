@@ -20,7 +20,7 @@ import { createBottomTabNavigator } from 'react-navigation-tabs';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createAppContainer,createSwitchNavigator } from 'react-navigation';
 import {IMAGE} from './src/constants/Image';
-import {ChatList, Chat, ContactList, Contact,Profile,Login,Register,
+import {ChatList, Chat,SearchList, ContactList, Contact,Profile,Login,Register,
   ForgotPassword,AuthLoading,Logout} from './src/components';
 console.reportErrorsAsExceptions = false;
 console.disableYellowBox = true;
@@ -35,6 +35,10 @@ const ChatStack = createStackNavigator({
   },
   Chat: {
     screen: Chat,
+    navigationOptions: navOptionHandler
+  },
+  SearchList: {
+    screen: SearchList,
     navigationOptions: navOptionHandler
   }
 });

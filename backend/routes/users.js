@@ -13,10 +13,10 @@ router.post('/', function(req, res, next) {
   if(!username || !password){
     res.send({'success':false,'message':'Please fill all the fields'});
   } else{
-  connection.query("SELECT * FROM users WHERE email=? AND password=?",[username,password],function(err,row,fields){
+  connection.query("SELECT * FROM profiles WHERE email=? AND password=?",[username,password],function(err,row,fields){
     if(err) console.log(err);
     if(row.length>0){
-      res.send({'success':true,'email':row[0].email,'username':row[0].username,'ids':row[0].id,'status':row[0].status});
+      res.send({'success':true,'email':row[0].email,'username':row[0].firstname,'ids':row[0].userid,'status':"Online"});
     } else{
       res.send({'success':false,'message':'User not found, Please try again'});
     }
@@ -30,15 +30,15 @@ router.post('/contacts', function(req, res, next) {
   if(!username){
     res.send({'success':false,'message':'Please Login'});
   } else{
-  connection.query("SELECT * FROM users WHERE email!=?",[username],function(err,row,fields){
+  connection.query("SELECT * FROM profiles WHERE email!=?",[username],function(err,row,fields){
     if(err) console.log(err);
     if(row.length>0){
       let contacts = [];
       row.map(contact=>{
         let singleContact = {
-          username: contact.username,
-          id: contact.id,
-          status: contact.status
+          username: contact.firstname,
+          id: contact.userid,
+          status: "Online"
         }
         contacts.push(singleContact);
       });
@@ -68,28 +68,29 @@ router.post('/chats', function(req, res, next) {
       users = users.filter(user=>user!=id);
       users = removeDuplicateUsers(users);
       users.map(user=>{
-        connection.query("SELECT * FROM users WHERE id=?",[user],(err,rows,fields)=>{
+        connection.query("SELECT * FROM profiles WHERE userid=?",[user],(err,rows,fields)=>{
           if(err) {throw err;}
           else{
-        connection.query("SELECT createdAt,received,text FROM conversation where (user_id=? and userTo=?) or (user_id=? and userTo=?) ORDER BY createdAt DESC",[id,rows[0].id,rows[0].id,id],(err,rowss,fields)=>{
+        connection.query("SELECT createdAt,received,text FROM conversation where (user_id=? and userTo=?) or (user_id=? and userTo=?) ORDER BY createdAt DESC",[id,rows[0].userid,rows[0].userid,id],(err,rowss,fields)=>{
           if(err){throw err;}
           else{
+            if(rowss[0].createdAt){
             let lastActive = rowss[0].createdAt;
             let received = rowss[0].received;
             let text = rowss[0].text;
             let msgs = rowss.length;
             let user = {
-              id: rows[0].id,
-              username: rows[0].username,
+              id: rows[0].userid,
+              username: rows[0].firstname,
               email: rows[0].email,
-              avatar: rows[0].avatar,
-              status: rows[0].status,
+              avatar: rows[0].image,
+              status: "Online",
               lastActive,
               received,
               text
             }
             if(msgs>0){
-              connection.query("SELECT * FROM conversation where user_id=? and userTo=? and received=0",[rows[0].id,id],(err,unreadMessages,fields)=>{
+              connection.query("SELECT * FROM conversation where user_id=? and userTo=? and received=0",[rows[0].userid,id],(err,unreadMessages,fields)=>{
                 if(err){throw err;}
                 else{
                   if(unreadMessages.length>0){
@@ -102,12 +103,15 @@ router.post('/chats', function(req, res, next) {
             }
             chats.push(user);
           }
+          }
         });
           }
         })
       })
       setTimeout(() => {
+        if(chats.length>0){
         chats = chats.sort((a, b) => b.lastActive - a.lastActive);
+        }
         // console.log("chats",chats);
         res.send({success:true,chats});
       },1000);
@@ -122,11 +126,11 @@ router.post('/chats', function(req, res, next) {
 router.post('/getChat',(req,res,next)=>{
   let messages = [];
   let details=req.body;
-  let userFrom = parseInt(details.userFrom);
-    let userTo = parseInt(details.userTo);
+  let userFrom = details.userFrom;
+    let userTo = details.userTo;
     let onlineStatus = details.online;
     let conversation = "SELECT * FROM conversation where (user_id=? or user_id=?) and (userTo=? or userTo=?) ORDER BY createdAt DESC";
-    let getUser = "SELECT * FROM users WHERE id=?";
+    let getUser = "SELECT * FROM profiles WHERE userid=?";
     let updateReceiveStatus = "UPDATE conversation SET ? WHERE _id=?";
     connection.query(conversation,[userFrom,userTo,userFrom,userTo],(err,rowss,fields)=>{
       if(err){throw err;}
@@ -136,7 +140,7 @@ router.post('/getChat',(req,res,next)=>{
         connection.query(getUser,[message.user_id],(err,rows,fields)=>{
           if(err){throw err;}
           else{
-            userId = rows[0].id;
+            userId = rows[0].userid;
             username = rows[0].username;
             avatar = rows[0].avatar;
             let singleMessage = {
@@ -180,20 +184,34 @@ router.post('/getChat',(req,res,next)=>{
 //User registration
 router.post('/addUser', (req, res, next)=> {
   let details=req.body;
+  connection.query("SELECT * FROM profiles ORDER BY userid DESC Limit 1",function(err,row,fields){
+    if(err){throw err}
+    else{
+      details.userid = parseInt(row[0].userid)+1;
+  details.phone='1231231231';
+  details.lastname="Admin";
+  details.token=1;
+  if(details.username){
+    details.firstname = details.username;
+  }
+  delete details.username;
+  delete details.status;
   if(!details.email || !details.password){
     res.send({'success':false,'message':'Please fill all the fields'});
   } else{
-  connection.query("SELECT * FROM users WHERE email = ?",[details.email],function(err,row,fields){
+  connection.query("SELECT * FROM profiles WHERE email = ?",[details.email],function(err,row,fields){
     if(row.length>0){
       res.send({'success':false,'message':'User Already Exists'});
     } else{
-      connection.query("INSERT INTO users SET ?",[details],function(err,result){
+      connection.query("INSERT INTO profiles SET ?",[details],function(err,result){
         if(err) throw err;
         res.send({'success':true,'message':'Registered Successfully'});
       })
     }
   });
 }
+}
+});
 });
 
 //forgot password route Not yet implemented
@@ -202,7 +220,7 @@ router.post('/forgotPassword', function(req, res, next) {
   if(!details.email){
     res.send({'success':false,'message':'Please fill all the fields'});
   } else{
-  connection.query("SELECT * FROM users WHERE email = ?",[details.email],function(err,row,fields){
+  connection.query("SELECT * FROM profiles WHERE email = ?",[details.email],function(err,row,fields){
     if(row.length>0){
       res.send({'success':true,'message':'Reset Password Link Sent To Your Email Successfully'});
     } else{
@@ -229,8 +247,8 @@ function decodeBase64Image(dataString) {
 
 //to upload image
 router.post("/imageMsg",(req,res,next)=>{
-      const newPhoto = JSON.stringify(req.body);
-      let parsed = JSON.parse(newPhoto);
+      const newPhoto = req.body;
+      // let parsed = JSON.parse(newPhoto);
       const image = parsed._parts[0][1]['uri'];
       const destpath = './public/images/';
       const fileNames = parsed._parts[0][1]['name'];

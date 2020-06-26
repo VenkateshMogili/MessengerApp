@@ -15,7 +15,7 @@ import {
   ImageBackground,
   Image,
   KeyboardAvoidingView,
-  AppState,
+  AppState
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -31,6 +31,7 @@ import ImagePicker from "react-native-image-picker";
 import {GiftedChat, Bubble} from "react-native-gifted-chat-video-support";
 import io from 'socket.io-client';
 import {environment} from '../../../constants/environment';
+import {Video} from 'react-native-gifted-chat-video-support';
 console.reportErrorsAsExceptions = false;
 export class Chat extends Component{
   _isMounted = false;
@@ -137,7 +138,7 @@ export class Chat extends Component{
     // this.socket.emit("connected",userDetails);
     this.socket.emit("add user",userFrom);
     this.socket.on("user joined",user=>{
-      let foundUser = user.username.findIndex(user=>parseInt(user)==parseInt(userTo));
+      let foundUser = user.username.findIndex(user=>user==userTo);
       // console.log(foundUser);
       // let messages = this.state.messages;
       if(foundUser!==-1){
@@ -170,7 +171,7 @@ export class Chat extends Component{
       this.socket.emit("close connection",userFrom);
       this.socket.on("user left",user=>{
         // console.log("user details",user);
-        let foundUser = user.username.findIndex(user=>parseInt(user)==parseInt(userFrom));
+        let foundUser = user.username.findIndex(user=>user==userFrom);
         // console.log(foundUser);
         if(foundUser!==-1){
           let status ="online";
@@ -256,7 +257,7 @@ export class Chat extends Component{
 
   chooseImage() {
     const options = {
-        title: "Select Image",
+        title: "Select Video",
         takePhotoButtonTitle: "Take photo",
         chooseFromLibraryButtonTitle: "Choose from library",
         chooseWhichLibraryTitle:"Choose Anyone",
@@ -270,7 +271,8 @@ export class Chat extends Component{
         mediaType: 'photo',
         aspectX: 1,
         aspectY: 1,
-        quality: 1.0
+        quality: 1.0,
+        base64: true
     };
     ImagePicker.showImagePicker(options, (response) => {
         console.log('Response = ');
@@ -284,6 +286,7 @@ export class Chat extends Component{
                 this.setState({ Images: undefined });
             }
         } else {
+          // console.log(response);
           let source = {uri: response.uri};
           this.setState({
             resourcePath: response
@@ -295,52 +298,62 @@ export class Chat extends Component{
 
 sendToBackend(response){
   this.setState({imageUploading: true});
-          let fromId=parseInt(this.props.navigation.getParam('fromId'));
-          let userTo=parseInt(this.props.navigation.getParam('id'));
-          let sender=this.props.navigation.getParam('sender');
-          // console.log("response uri",response.uri);
+  let fromId=this.props.navigation.getParam('fromId');
+  let userTo=this.props.navigation.getParam('id');
+  let sender=this.props.navigation.getParam('sender');
             const source = { uri: response.uri };
-            const uriParts = response.uri.split('.');
-            const fileType = uriParts[uriParts.length - 1];
-            let photo = {
-              uri: 'data:images/jpeg;base64,'+this.state.resourcePath.data,
-              type: 'image/jpeg',
-              name: new Date().getTime()+".jpg",
-            };
+            // const uriParts = response.uri.split('.');
+            // const fileType = uriParts[uriParts.length - 1];
+            // let photo = {
+            //   uri: 'data:images/jpeg;base64,'+this.state.resourcePath.data,
+            //   type: 'image/jpeg',
+            //   name: new Date().getTime()+".jpg",
+            // };
 
-            let form = new FormData();
-            form.append("upload", photo);
-            let fileOk = JSON.stringify(form);
-            fetch(environment+'/users/imageMsg',
-              {
+            let video = 'data:video/mp4;base64,' + response.path;
+            // let fileOk = JSON.stringify(form);
+            let photo = 'data:images/jpeg;base64,'+this.state.resourcePath.data;
+            let data = {
+              "file": photo,
+              "upload_preset": "nf7mgu9k",
+            }
+            // var data = new FormData();
+            // data.append('file', photo);
+            // data.append('upload_preset', 'nf7mgu9k');
+            // data.append('cloud_name', 'dbqm9svvp');
+
+            let CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbqm9svvp/upload';
+
+            const config = {
                 method: "POST",
-                headers: {
+                headers:{
                   'Content-Type':'application/json'
                 },
-                body: JSON.stringify(form)
-              }
-            ).then((response) => response.json())
+                body: JSON.stringify(data)
+            };
+            fetch(CLOUDINARY_URL,config
+            ).then((response)=> response.json())
             .then((responseData) => {
-              // console.log("Image sent",responseData);
-              if(responseData.success){
-                let img_url = environment+"/images/"+responseData.fileName;
+              console.log("Image sent",responseData);
+              if(responseData.url){
+                let img_url = responseData.url;
                 // console.log(img_url);
-            let msg = [{
-              text: this.state.customMessage,
-              _id: new Date().getTime(),
-              createdAt: new Date(),
-              user: {
-                  _id: fromId,
-                  name: sender,
-              },
-              image: img_url
-          }];
+                let msg = [{
+                  text: this.state.customMessage,
+                  _id: new Date().getTime(),
+                  createdAt: new Date(),
+                  user: {
+                      _id: fromId,
+                      name: sender,
+                  },
+                  image: img_url
+                }];
 
-          this.setState({imageUploading: false});
-          // alert(responseData.message);
-          this.onSend(msg)
+                this.setState({imageUploading: false});
+                // alert(responseData.message);
+                this.onSend(msg)
               } else{
-                alert(responseData.message);
+                alert("Something went wrong");
               }
             }).done();
 }
@@ -390,6 +403,62 @@ sendToBackend(response){
         }
     });
 }*/
+
+chooseVid(){
+  // More info on all the options is below in the README...just some common use cases shown here
+var options = {
+  title: 'Pick and Trim Video',
+  customButtons: [
+    {name: 'trim', title: 'Trim Video Now'},
+  ],
+  storageOptions: {
+    skipBackup: true,
+    path: 'images'
+  },
+  customStyles: {
+  	pickvideo: { height: 35 },
+  	trimvideo: { alignSelf: 'center' },
+  	containerTrimmerBottomView:{ flexDirection:'column'},
+  	sliderValuesView:{ justifyContent:'space-between'},
+  	sliderValuesText1: { fontSize: 18,  color: 'black'},
+  	sliderValuesText2: { fontSize: 18,  color: 'black'},
+  	backgroundView: { flexDirection:'column'	},
+  	backgroundViewTrimmer: {	  alignItems:'center' 	}
+  }
+};
+
+/**
+ * The first arg is the options object for customization (it can also be null or omitted for default options),
+ * The second arg is the callback which sends object: response (more info below in README)
+ */
+VideoTrimPicker.showVideoTrimPicker(options, (response) => {
+  console.log('Response = ', response);
+
+  if (response.didCancel) {
+    console.log('User cancelled video picker');
+  }
+  else if (response.error) {
+    console.log('VideoTrimPicker Error: ', response.error);
+  }
+  else if (response.customButton) {
+    console.log('User tapped custom button: ', response.customButton);
+  }
+  else {
+    // You can display the video using either data...
+    const source = {uri: 'data:video/mp4;base64,' + response.data, isStatic: true};
+    // or a reference to the platform specific asset location
+    if (Platform.OS === 'ios') {
+      const source = {uri: response.uri.replace('file://', ''), isStatic: true};
+    } else {
+      const source = {uri: response.uri, isStatic: true};
+    }
+
+    this.setState({
+      myTrimmedVideoSource: source
+    });
+  }
+});
+}
 
 /*camera icon to send images*/
 renderLeftIcon = () =>{
@@ -457,12 +526,12 @@ loadMessages =() =>{
 /*while typing the message*/
 onMessageTyping(message){
   this.setState({customMessage:message});
-  let fromId=parseInt(this.props.navigation.getParam('fromId'));
-  let userTo=parseInt(this.props.navigation.getParam('id'));
+  let fromId=this.props.navigation.getParam('fromId');
+  let userTo=this.props.navigation.getParam('id');
     this.socket.emit("typing",fromId);
     this.socket.on("is typing",user=>{
       // console.log("typer",user);
-      if(parseInt(user)==parseInt(userTo) && parseInt(user)!=parseInt(fromId)){
+      if(user==userTo && user!=fromId){
     this.setState({isMessageTyping:true});
     if(this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
@@ -477,7 +546,7 @@ onMessageTyping(message){
     let title=this.props.navigation.getParam('name');
     let sender=this.props.navigation.getParam('sender');
     let id=this.props.navigation.getParam('id');
-    let fromId=parseInt(this.props.navigation.getParam('fromId'));
+    let fromId=this.props.navigation.getParam('fromId');
     let allmsgs = this.state.messages.map(msg=><Text key={msg._id} style={msg.user._id==fromId?styles.rightMessage:styles.leftMessage}>{msg.text}</Text>)
     let { customMessage } = this.state
     return (
@@ -491,8 +560,8 @@ onMessageTyping(message){
       <GiftedChat
       alwaysShowSend={true}
       scrollToBottom
-      showUserAvatar
-      // renderUsernameOnMessage
+      showUserAvatar={false}
+      renderUsernameOnMessage={false}
       isAnimated={true}
         placeholder="Type your message..."
         messages={this.state.messages}
@@ -501,7 +570,7 @@ onMessageTyping(message){
         onSend={messages => this.onSend(messages)}
         user={{
           _id: fromId,
-          name: sender,
+          // name: sender,
           // avatar: 'https://www.facebook.com/images/fb_icon_325x325.png'
         }}
         useNativeDriver={true}
@@ -553,6 +622,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center"
+  },
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
   },
   camera:{
     paddingVertical: 8,

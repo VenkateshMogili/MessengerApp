@@ -7,6 +7,7 @@ export * from './tabs/contact/ContactList'
 export * from './tabs/contact/Contact'
 
 export * from './tabs/profile/Profile'
+export * from './tabs/search/SearchList'
 
 export * from './auth/Login'
 export * from './auth/Register'
