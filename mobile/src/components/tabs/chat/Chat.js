@@ -27,11 +27,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import {Icon} from 'native-base';
-import ImagePicker from "react-native-image-picker";
+// import ImagePicker from "react-native-image-picker";
 import {GiftedChat, Bubble} from "react-native-gifted-chat-video-support";
 import io from 'socket.io-client';
 import {environment} from '../../../constants/environment';
 import {Video} from 'react-native-gifted-chat-video-support';
+import ImagePicker from 'react-native-image-crop-picker';
+import RNFetchBlob from 'rn-fetch-blob';
 console.reportErrorsAsExceptions = false;
 export class Chat extends Component{
   _isMounted = false;
@@ -57,7 +59,8 @@ export class Chat extends Component{
       nextToLen: 10,
       resourcePath: {},
       imageUploading: false,
-      isMessageTyping: false
+      isMessageTyping: false,
+      cameraSelectedBase64Data:''
     }
   }
 
@@ -228,15 +231,15 @@ export class Chat extends Component{
     }
   }
 
-  // renderMessageVideo = (props: any) => {
-  //   const { currentMessage } = props;
-  //   return (
-  //     <View style={{ padding: 20 }}>
-  //     <Text>Video</Text>
-  //     {/* <VideoPlayer url={currentMessage.video}/> */}
-  //     </View>
-  //   );
-  // };
+  renderMessageVideo = (props: any) => {
+    const { currentMessage } = props;
+    return (
+      <View style={{ padding: 20 }}>
+      <Text>Video</Text>
+      <VideoPlayer url={currentMessage.video}/>
+      </View>
+    );
+  };
 
   //custom message handler
   /*sendMessage = (text)=>{
@@ -255,53 +258,53 @@ export class Chat extends Component{
     // this.setState({messageText:''});
   }*/
 
-  chooseImage() {
-    const options = {
-        title: "Select Video",
-        takePhotoButtonTitle: "Take photo",
-        chooseFromLibraryButtonTitle: "Choose from library",
-        chooseWhichLibraryTitle:"Choose Anyone",
-        allowsEditing: true,
-        storageOptions: {
-          skipBackup: true,
-          path:'images'
-        },
-        cancelButtonTitle: "cancel",
-        cameraType: 'front',
-        mediaType: 'photo',
-        aspectX: 1,
-        aspectY: 1,
-        quality: 1.0,
-        base64: true
-    };
-    ImagePicker.showImagePicker(options, (response) => {
-        console.log('Response = ');
-        if (response.didCancel) {
-            console.log('User cancelled image picker');
-        } else if (response.error) {
-            console.log('ImagePicker Error: ');
-        } else if (response.customButton) {
-            if (response.customButton === 'remove') {
-                console.log('User tapped custom button: ');
-                this.setState({ Images: undefined });
-            }
-        } else {
-          // console.log(response);
-          let source = {uri: response.uri};
-          this.setState({
-            resourcePath: response
-          });
-          this.sendToBackend(response);
-        }
-    });
-}
+//   chooseImage() {
+//     const options = {
+//         title: "Select Video",
+//         takePhotoButtonTitle: "Take photo",
+//         chooseFromLibraryButtonTitle: "Choose from library",
+//         chooseWhichLibraryTitle:"Choose Anyone",
+//         allowsEditing: true,
+//         storageOptions: {
+//           skipBackup: true,
+//           path:'images'
+//         },
+//         cancelButtonTitle: "cancel",
+//         cameraType: 'front',
+//         mediaType: 'photo',
+//         aspectX: 1,
+//         aspectY: 1,
+//         quality: 1.0,
+//         base64: true
+//     };
+//     ImagePicker.showImagePicker(options, (response) => {
+//         console.log('Response = ');
+//         if (response.didCancel) {
+//             console.log('User cancelled image picker');
+//         } else if (response.error) {
+//             console.log('ImagePicker Error: ');
+//         } else if (response.customButton) {
+//             if (response.customButton === 'remove') {
+//                 console.log('User tapped custom button: ');
+//                 this.setState({ Images: undefined });
+//             }
+//         } else {
+//           // console.log(response);
+//           let source = {uri: response.uri};
+//           this.setState({
+//             resourcePath: response
+//           });
+//           this.sendToBackend(response);
+//         }
+//     });
+// }
 
-sendToBackend(response){
+sendToBackend(response,sourceType){
   this.setState({imageUploading: true});
   let fromId=this.props.navigation.getParam('fromId');
   let userTo=this.props.navigation.getParam('id');
   let sender=this.props.navigation.getParam('sender');
-            const source = { uri: response.uri };
+            // const source = { uri: response.uri };
             // const uriParts = response.uri.split('.');
             // const fileType = uriParts[uriParts.length - 1];
             // let photo = {
@@ -310,15 +313,15 @@ sendToBackend(response){
             //   name: new Date().getTime()+".jpg",
             // };
 
-            let video = 'data:video/mp4;base64,' + response.path;
+            // let video = 'data:video/mp4;base64,' + response.path;
             // let fileOk = JSON.stringify(form);
-            let photo = 'data:images/jpeg;base64,'+this.state.resourcePath.data;
+            // let photo = 'data:images/jpeg;base64,'+this.state.resourcePath.data;
             let data = {
-              "file": photo,
+              "file": response,
               "upload_preset": "nf7mgu9k",
             }
             // var data = new FormData();
-            // data.append('file', photo);
+            // data.append('file', response);
             // data.append('upload_preset', 'nf7mgu9k');
             // data.append('cloud_name', 'dbqm9svvp');
 
@@ -334,7 +337,7 @@ sendToBackend(response){
             fetch(CLOUDINARY_URL,config
             ).then((response)=> response.json())
             .then((responseData) => {
-              console.log("Image sent",responseData);
+              // console.log("Image sent",responseData);
               if(responseData.url){
                 let img_url = responseData.url;
                 // console.log(img_url);
@@ -346,9 +349,14 @@ sendToBackend(response){
                       _id: fromId,
                       name: sender,
                   },
-                  image: img_url
                 }];
 
+                if(sourceType=='image'){
+                  msg[0].image = img_url
+                } else if(sourceType=='video'){
+                  msg[0].video = img_url
+                }
+                // console.log(msg);
                 this.setState({imageUploading: false});
                 // alert(responseData.message);
                 this.onSend(msg)
@@ -465,8 +473,12 @@ renderLeftIcon = () =>{
     return(
         <View  style={{ height:'100%',alignItems:'center'  , justifyContent:'flex-start' , flexDirection:'row' , paddingLeft:5,paddingRight: 5}}>
             {!this.state.imageUploading?
-            <TouchableOpacity onPress={this.chooseImage.bind(this)}>
+            <TouchableOpacity onPress={()=>this.pickImageCamera('image')}>
               <Icon name="camera" style={styles.camera}/>
+            </TouchableOpacity>:null}
+            {!this.state.imageUploading?
+            <TouchableOpacity onPress={()=>this.pickImageCamera('video')}>
+              <Icon name="laptop" style={styles.camera}/>
             </TouchableOpacity>:null}
             {this.state.imageUploading?
             <TouchableOpacity>
@@ -541,6 +553,77 @@ onMessageTyping(message){
     });
 }
 
+pickImageCamera = sourceType => {
+  let options = {};
+  if (sourceType === 'image') {
+    options = {
+      cropping: true,
+      multiple: true,
+      mediaType: sourceType,
+      includeBase64: true,
+      sortOrder: 'none',
+      compressImageMaxWidth: 1000,
+      compressImageMaxHeight: 1000,
+      compressImageQuality: 0.5,
+      compressVideoPreset: 'MediumQuality',
+      includeExif: true,
+    };
+  } else if (sourceType === 'video') {
+    options = {
+      mediaType: sourceType,
+      includeBase64: true,
+      compressVideoPreset: 'MediumQuality',
+      includeExif: true,
+    };
+  }
+  let base64Data = [];
+  ImagePicker.openCamera(options)
+    .then(image => {
+      let filename = image.path;
+      // console.log("Image Data", image);
+      if (sourceType === 'image') {
+        let finaldata = `data:${image.mime};base64,` + image.data;
+        this.sendToBackend(finaldata,sourceType);
+        base64Data.push({
+          mediaFile: `data:${image.mime};base64,${image.data}`,
+          type: 'image',
+          duration: null,
+          localUri: filename,
+        });
+        this.setState({
+          cameraSelectedBase64Data: this.state.cameraSelectedBase64Data.concat(
+            base64Data,
+          ),
+        });
+      } else if (sourceType === 'video') {
+        // console.log("video type:", image);
+        if(Platform.OS==='ios'){
+          filename = filename.slice(6);
+        }
+
+        RNFetchBlob.fs.readFile(filename, 'base64').then(data => {
+          let finaldata = `data:${image.mime};base64,` + data;
+          this.sendToBackend(finaldata,sourceType);
+          base64Data.push({
+            mediaFile: `data:${image.mime};base64,` + data,
+            type: 'video',
+            duration: null,
+            localUri: filename,
+          });
+          this.setState({
+            cameraSelectedBase64Data: this.state.cameraSelectedBase64Data.concat(
+              base64Data,
+            ),
+          });
+        })
+        // .catch(e=>{console.clear();console.log(e)});
+      }
+    })
+    .catch(e => {
+      // alert('No Media Selected');
+    });
+};
+
   render(){
     const connect = this.state.connected;
     let title=this.props.navigation.getParam('name');
@@ -553,7 +636,7 @@ onMessageTyping(message){
       <View style={{flex:1,flexDirection: 'column',backgroundColor: '#fff'}}>
       <CustomHeader title={title} status={this.state.status} typing={this.state.isMessageTyping} navigation={this.props.navigation}/>
       <View style={{justifyContent:'center',alignItems:'center'}}>
-      {this.state.imageUploading?<Text style={{fontSize:15,color:'#3399cc'}}>Sending Image</Text>:null}
+      {this.state.imageUploading?<Text style={{fontSize:15,color:'#3399cc'}}>Sending Attachment</Text>:null}
       </View>
       {/* {this.renderLoading()} */}
 <View style={{flex:1,backgroundColor:'lightgray'}}>
@@ -631,8 +714,9 @@ const styles = StyleSheet.create({
     right: 0,
   },
   camera:{
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    fontSize:20,
     color:"lightgray",
   }
 });
