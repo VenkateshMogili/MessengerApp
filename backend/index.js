@@ -21,10 +21,11 @@ app.get('/', (req, res) => {
 let messages = [];
 let usersGlobal = [];
 io.on("connection",socket=>{
-// console.log("New User Connected");
+console.log("New User Connected");
 
 //user will be added whenever open any chat
   socket.on('add user', (username) => {
+    console.log("add user");
     //console.log("connected user",username);
     socket.username = username;
     let check=usersGlobal.findIndex(id=>id==username);
@@ -71,9 +72,12 @@ io.on("connection",socket=>{
 
 //when message sent
   socket.on("chat message",msg=>{
-      // console.log(msg);
+      console.log(msg);
+      console.log("calling");
       let userTo = msg.userTo;
       let userFrom = msg.userFrom;
+      console.log(userTo);
+      console.log(userFrom);
       let data = {_id:msg._id,text:msg.text,image:msg.image,video:msg.video,user_id:userFrom,userTo:userTo,sent:msg.sent,received:msg.received};
       var sql = "INSERT INTO conversation SET ?";
       let createdId;

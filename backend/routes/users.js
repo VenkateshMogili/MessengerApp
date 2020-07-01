@@ -38,7 +38,12 @@ router.post('/contacts', function(req, res, next) {
         let singleContact = {
           username: contact.firstname,
           id: contact.userid,
-          status: "Online"
+          status: "Online",
+          avatar: contact.image,
+          lastname: contact.lastname?contact.lastname:'',
+          middlename: contact.middlename?contact.middlename:'',
+          email: contact.email,
+          phone: contact.phone
         }
         contacts.push(singleContact);
       });
@@ -84,6 +89,10 @@ router.post('/chats', function(req, res, next) {
               username: rows[0].firstname,
               email: rows[0].email,
               avatar: rows[0].image,
+              lastname: rows[0].lastname?rows[0].lastname:'',
+              middlename: rows[0].middlename?rows[0].middlename:'',
+              email: rows[0].email,
+              phone: rows[0].phone,
               status: "Online",
               lastActive,
               received,
@@ -116,7 +125,28 @@ router.post('/chats', function(req, res, next) {
         res.send({success:true,chats});
       },1000);
     } else{
-      res.send({'success':false,'message':'No chat found'});
+      connection.query("SELECT * FROM profiles WHERE userid!=?",[id],function(err,row,fields){
+        if(err) console.log(err);
+        if(row.length>0){
+          let contacts = [];
+          row.map(contact=>{
+            let singleContact = {
+              username: contact.firstname,
+              id: contact.userid,
+              avatar: contact.image,
+              status: "Online",
+              lastname: contact.lastname,
+              middlename: contact.middlename?contact.middlename:'',
+              email: contact.email,
+              phone: contact.phone
+            }
+            contacts.push(singleContact);
+          });
+          res.send({'success':true,'chats':[],'contacts':contacts});
+        } else{
+          res.send({'success':false,'message':'User not found, Please try again'});
+        }
+      });
     }
   });
 }
@@ -142,7 +172,7 @@ router.post('/getChat',(req,res,next)=>{
           else{
             userId = rows[0].userid;
             username = rows[0].username;
-            avatar = rows[0].avatar;
+            avatar = rows[0].image;
             let singleMessage = {
               text: message.text,
               user: {_id: message.user_id,
