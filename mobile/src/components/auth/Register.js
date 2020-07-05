@@ -1,9 +1,10 @@
 import React from 'react';
-import {View,Image,TextInput, TouchableOpacity, StyleSheet, ImageBackground} from 'react-native';
+import {View,Image,TextInput,Dimensions, TouchableOpacity, StyleSheet, ImageBackground} from 'react-native';
 import {Text,Button} from 'native-base';
 import {IMAGE} from '../../constants/Image';
 import {environment} from '../../constants/environment';
 import AsyncStorage from '@react-native-community/async-storage';
+import {Icon} from 'native-base';
 export class Register extends React.Component{
   constructor(props){
     super(props);
@@ -39,9 +40,9 @@ export class Register extends React.Component{
   return (
       <View style={{flex: 1}}>
       <View style={styles.container}>
-        <ImageBackground source={IMAGE.ICON_MENU} style={styles.backgroundImage}>
+        {/* <ImageBackground source={IMAGE.ICON_MENU} style={styles.backgroundImage}> */}
           <View style={styles.content}>
-            <Text style={styles.logo}>- WELCOME -</Text>
+            <Text style={styles.logo}>Messenger 1.0</Text>
             <View style={styles.inputContainer}>
             <TextInput underlineColorAndroid='transparent' style={styles.input} placeholder="Email"
               onChangeText={(email)=>this.setState({email})}
@@ -59,17 +60,28 @@ export class Register extends React.Component{
             <TouchableOpacity onPress={this.login} style={styles.buttonContainer}>
               <Text style={styles.buttonText}>REGISTER</Text>
             </TouchableOpacity>
+            <View style={{flexDirection:'row',justifyContent: 'center',alignItems: 'center',}}>
+            <Text style={{marginTop:10}}>Already have account? </Text>
+      <Button light style={{borderRadius:50,marginTop:10,backgroundColor:'#1e90ff'}}
+      onPress={()=>this.props.navigation.navigate('Login')}>
+        <Text style={{color:'white'}}>Login</Text>
+      </Button>
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={styles.madeInIndia}>Made In <Icon name="heart" style={styles.india}/> India</Text>
+      </View>
           </View>
-        </ImageBackground>
+        {/* </ImageBackground> */}
       </View>
       {/* <Button light style={{marginTop:10}}
       onPress={()=>this.props.navigation.navigate('Login')}>
         <Text>Login</Text>
       </Button> */}
-      <Button light style={{marginTop:10}}
+      {/* <Button light style={{marginTop:10}}
       onPress={()=>this.props.navigation.navigate('Login')}>
         <Text>Login</Text>
-      </Button>
+      </Button> */}
       </View>
   );
   }
@@ -78,6 +90,7 @@ export class Register extends React.Component{
 const styles = StyleSheet.create({
   container:{
     flex:1,
+    backgroundColor:'#1e90ff'
   },
   backgroundImage:{
     flex:1,
@@ -86,21 +99,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content:{
-    opacity:0.9,
     backgroundColor:'white',
-    borderWidth:2,
-    borderColor:'orange',
     margin:10,
     alignItems: 'center',
-    borderRadius:10
+    borderRadius:10,
+    justifyContent: 'center',
+    height:Dimensions.get('window').height-40
   },
   logo:{
     justifyContent: 'center',
     alignItems: 'center',
-    fontSize:45,
-    color:'black',
-    textShadowColor:'gray',
-    textShadowRadius:10
+    fontSize:35,
+    color:'#1e90ff',
   },
   inputContainer:{
   },
@@ -108,9 +118,9 @@ const styles = StyleSheet.create({
     borderRadius:10,
     padding:10,
     color:'black',
-    borderWidth:2,
+    borderWidth:1,
     borderColor:'lightgray',
-    width:200,
+    width:Dimensions.get('window').width-100,
     margin:5
   },
   buttonContainer:{
@@ -126,6 +136,19 @@ const styles = StyleSheet.create({
     color:'white',
     textAlign:'center',
     width:100
+  },
+  footer:{
+    position:"absolute",
+    bottom:0,
+    backgroundColor:"#1e90ff",
+    padding:10,
+  },
+  madeInIndia:{
+    color:'white'
+  },
+  india:{
+    color:'red',
+    fontSize:20
   }
 
 })
